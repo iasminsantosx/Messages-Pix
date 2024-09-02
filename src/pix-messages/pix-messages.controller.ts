@@ -1,4 +1,4 @@
-import { Controller, Post, Param, Res, HttpStatus, Get, Headers, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Param, Res, HttpStatus, Get, Headers, NotFoundException, Delete } from '@nestjs/common';
 import { PixMessagesService } from './pix-messages.service';
 import { Response } from 'express';
 
@@ -94,4 +94,17 @@ export class PixMessagesController {
     }
   }
 
+  @Delete('/:ispb/stream/:interactionId')
+  async stopStream(
+    @Param('ispb') ispb: string,
+    @Param('interactionId') interactionId: string,
+    @Res() res: Response,
+  ) {
+    try {
+      await this.pixMessagesService.stopStream(ispb, interactionId);
+      res.status(HttpStatus.OK).send();
+    } catch (e) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: e.message });
+    }
+  }
 }

@@ -118,4 +118,20 @@ export class PixMessagesService {
       throw error;  
     } 
   }
+
+  async stopStream(ispb: string, interactionId: string): Promise<void> {
+    try {
+      const currentStreams = this.activeStreams.get(ispb) || 0;
+  
+      if (currentStreams > 0) {
+        this.activeStreams.set(ispb, currentStreams - 1);
+      }
+  
+      if (this.activeStreams.get(ispb) === 0) {
+        this.activeStreams.delete(ispb);
+      }
+    } catch (error) {
+      throw new Error('Ocorreu um erro na hora de para o stream.');
+    }
+  }
 }
