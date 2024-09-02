@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { PixMessage } from './entities/pix-message.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +8,8 @@ import { Repository } from 'typeorm';
 export class PixMessagesService {
 
   private interactions: Map<string, Date> = new Map();
+  private activeStreams: Map<string, number> = new Map(); 
+  private readonly MAX_STREAMS = 6;
 
   constructor(
     @InjectRepository(PixMessage)
@@ -97,5 +99,23 @@ export class PixMessagesService {
     } catch (error) {
       throw new Error('Falha ao pegar as mensagens.');
     }
+  }
+
+  async startStream(ispb: string, accept?: string): Promise<{ messages: PixMessage[], nextInteractionId?: string }> {
+    try {
+      const currentStreams = this.activeStreams.get(ispb) || 0;
+      console.log(`Current streams for ${ispb}: ${currentStreams}`);
+      
+      if (currentStreams >= this.MAX_STREAMS) {
+        throw new Error('Too many active streams');
+      }
+      
+      this.activeStreams.set(ispb, currentStreams + 1);
+      
+      const { messages, nextInteractionId } = await this.getMessages(ispb, undefined, accept);
+      return { messages, nextInteractionId };
+    } catch (error) {
+      throw error;  
+    } 
   }
 }
