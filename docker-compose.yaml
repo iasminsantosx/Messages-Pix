@@ -1,0 +1,30 @@
+
+services:
+  messages-pix:
+    build: ./
+    container_name: messages-pix
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db_pix
+
+  db_pix:
+    image: postgres:15
+    container_name: db_pix_message
+    restart: always
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5434:5432"
+volumes:
+  postgres_data:
